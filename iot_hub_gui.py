@@ -80,8 +80,9 @@ class PlotCanvas(FigureCanvas):
         tm, pressure = self._iotHub.query_pressure()
         ax = self.figure.add_subplot(111)
 #         ax.plot(data, 'r-')
-        ax.plot(tm, pressure, 'r-')
+        ax.plot_date(tm, pressure, 'r-', xdate=True) #(tm, pressure, 'r-')
         ax.set_title('PyQt Matplotlib Example')
+        self.figure.autofmt_xdate()
         self.draw()
         
 def main2():
