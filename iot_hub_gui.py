@@ -45,18 +45,20 @@ class IoTHubApp(QMainWindow):
  
         self.show()
  
-    def query_pressure(self, interval_seconds):
+    def query(self, timeslice):
+        ''' query table with timeslice '''
         c = self._conn.cursor()
         
-        query_stmt = "select datetime(tm, 'localtime'), avg(pressure) from sensor_data group by (strftime('%%s', tm)/(%d))" % interval_seconds
+        query_stmt = "select datetime(tm, 'localtime'), avg(pressure), avg(temp) from sensor_data group by (strftime('%%s', tm)/(%d)) order by tm asc" % timeslice
         c.execute(query_stmt)
-        pressure_data = c.fetchall()
+        query_result = c.fetchall()
         # convert the list of tuples to two lists
-        tm, pressure = zip(*pressure_data)
-        tm1 = list(tm)
-        pressure1 = list(pressure)
+        tm, pressure, temp = zip(*query_result)
+        l_tm = list(tm)
+        l_pressure = list(pressure)
+        l_temp = list(temp)
         c.close()       
-        return tm1, pressure1 
+        return l_tm, l_pressure, l_temp 
  
 class PlotCanvas(FigureCanvas):
  
@@ -76,13 +78,15 @@ class PlotCanvas(FigureCanvas):
  
  
     def plot(self):
-#         data = [random.random() for i in range(25)]
-        # group by 60 second interval
-        tm, pressure = self._iotHub.query_pressure(1200)
-        ax = self.figure.add_subplot(111)
-#         ax.plot(data, 'r-')
-        ax.plot_date(tm, pressure, 'r-', xdate=True) #(tm, pressure, 'r-')
-        ax.set_title('PyQt Matplotlib Example')
+        tm, pressure, temp = self._iotHub.query(1200)
+        ax_pressure = self.figure.add_subplot(121) # Rows=1, Columns=2, Pos=1
+        ax_pressure.plot_date(tm, pressure, 'r-', xdate=True) #(tm, pressure, 'r-')
+        ax_pressure.set_title('Pressure')
+        
+        ax_temp = self.figure.add_subplot(122)
+        ax_temp.plot_date(tm, temp, 'r-', xdate=True) #(tm, pressure, 'r-')
+        ax_temp.set_title('Temperature')
+        
         self.figure.autofmt_xdate()
         self.draw()
         
