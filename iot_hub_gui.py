@@ -28,6 +28,7 @@ class IoTHubApp(QMainWindow):
         self.title = 'IoT Hub'
         self.width = 640
         self.height = 400
+        self._conn = sqlite3.connect(sqlite_file)
         self.initUI()
  
     def initUI(self):
@@ -44,12 +45,25 @@ class IoTHubApp(QMainWindow):
  
         self.show()
  
+    def query_pressure(self):
+        c = self._conn.cursor()
+        
+        query_stmt = "select datetime(tm, 'localtime'), pressure from sensor_data order by tm asc limit 20"
+        c.execute(query_stmt)
+        pressure_data = c.fetchall()
+        # convert the list of tuples to two lists
+        tm, pressure = zip(*pressure_data)
+        tm1 = list(tm)
+        pressure1 = list(pressure)
+        c.close()       
+        return tm1, pressure1 
  
 class PlotCanvas(FigureCanvas):
  
     def __init__(self, parent=None, width=5, height=4, dpi=100):
+        self._iotHub = parent
         fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        #self.axes = fig.add_subplot(111)
  
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
@@ -62,9 +76,11 @@ class PlotCanvas(FigureCanvas):
  
  
     def plot(self):
-        data = [random.random() for i in range(25)]
+#         data = [random.random() for i in range(25)]
+        tm, pressure = self._iotHub.query_pressure()
         ax = self.figure.add_subplot(111)
-        ax.plot(data, 'r-')
+#         ax.plot(data, 'r-')
+        ax.plot(tm, pressure, 'r-')
         ax.set_title('PyQt Matplotlib Example')
         self.draw()
         
