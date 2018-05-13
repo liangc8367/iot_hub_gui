@@ -85,45 +85,46 @@ class PlotCanvas(FigureCanvas):
     def plot(self):
         tm, pressure, temp, cpu_temp, rssi, humidity, batt_volt = self._iotHub.query(1200)
         
-        # layout of plots: 2x2
-        color = 'tab:red'
-        ax_pressure = self.figure.add_subplot(221) #Pos=1
-        ax_pressure.set_ylabel('Pressure', color = color)
-        ax_pressure.tick_params(axis='y', labelcolor = color)
-        ax_pressure.plot_date(tm, pressure, 'r-', xdate=True) #(tm, pressure, 'r-')
-
-        #ax_pressure.set_title('Pressure')
-        color = 'tab:blue'
-        ax_humidity = ax_pressure.twinx()
-        ax_humidity.set_ylabel('Humidity', color = color)
-        ax_humidity.tick_params(axis='y', labelcolor = color)
-        ax_humidity.plot_date(tm, humidity, 'b-', xdate=True)
+        # layout of plots: 2 row, 1 column
         
-        # room temperature and cpu temperature
-        ax_temp = self.figure.add_subplot(222)
-        ax_temp.set_ylabel('Degree(C)', color = color)
+        # upper plot for temperature, humidity and pressure
+        color = 'tab:red'
+        ax_temp = self.figure.add_subplot(211) #Pos=1
+        ax_temp.set_ylabel('Temperature (C)', color = color)
         ax_temp.tick_params(axis='y', labelcolor = color)
         ax_temp.plot_date(tm, temp, 'r-', xdate=True, label='temp') #(tm, pressure, 'r-')
-        ax_temp.plot_date(tm, cpu_temp, 'b-', xdate=True, label='cpu temp') #(tm, pressure, 'r-')
-        #ax_temp.set_title('Temperature')
-        # Now add the legend with some customizations.
-        legend = ax_temp.legend(loc='upper center', shadow=True)
-        # The frame is matplotlib.patches.Rectangle instance surrounding the legend.
-        frame = legend.get_frame()
-        frame.set_facecolor('0.90')
-        
-        # rssi and battery volt
-        color = 'tab:red'
-        ax_rssi = self.figure.add_subplot(212)
-        ax_rssi.set_ylabel('RSSI', color = color)
-        ax_rssi.tick_params(axis='y', labelcolor = color)
-        ax_rssi.plot_date(tm, rssi, 'r-', xdate=True) #(tm, pressure, 'r-')
         
         color = 'tab:blue'
-        ax_batt_volt = ax_rssi.twinx()
+        ax_pressure = ax_temp.twinx()
+        ax_pressure.set_ylabel('Pressure', color = color)
+        ax_pressure.tick_params(axis='y', labelcolor = color)
+        ax_pressure.plot_date(tm, pressure, 'b-', xdate=True) #(tm, pressure, 'r-')
+
+        color = 'tab:green'
+        ax_humidity = ax_temp.twinx()
+        ax_humidity.set_ylabel('Humidity', color = color)
+        ax_humidity.tick_params(axis='y', labelcolor = color)
+        ax_humidity.plot_date(tm, humidity, 'g-', xdate=True)
+        ax_humidity.spines['right'].set_position(('outward', 60))  
+                
+        # low half for cpu (temp, battery, rssi)
+        color = 'tab:red'
+        ax_cpu_temp = self.figure.add_subplot(212)
+        ax_cpu_temp.set_ylabel('CPU Temperature (C)', color = color)
+        ax_cpu_temp.plot_date(tm, cpu_temp, 'r-', xdate=True, label='cpu temp') #(tm, pressure, 'r-')
+        
+        color = 'tab:blue'
+        ax_rssi = ax_cpu_temp.twinx()
+        ax_rssi.set_ylabel('RSSI', color = color)
+        ax_rssi.tick_params(axis='y', labelcolor = color)
+        ax_rssi.plot_date(tm, rssi, 'b-', xdate=True) #(tm, pressure, 'r-')
+        
+        color = 'tab:green'
+        ax_batt_volt = ax_cpu_temp.twinx()
         ax_batt_volt.set_ylabel('Battery Volt', color = color)
         ax_batt_volt.tick_params(axis='y', labelcolor = color)
-        ax_batt_volt.plot_date(tm, batt_volt, 'b-', xdate=True)
+        ax_batt_volt.plot_date(tm, batt_volt, 'g-', xdate=True)
+        ax_batt_volt.spines['right'].set_position(('outward', 60))  
                         
         self.figure.autofmt_xdate()
         self.figure.tight_layout()
