@@ -45,10 +45,10 @@ class IoTHubApp(QMainWindow):
  
         self.show()
  
-    def query_pressure(self):
+    def query_pressure(self, interval_seconds):
         c = self._conn.cursor()
         
-        query_stmt = "select datetime(tm, 'localtime'), pressure from sensor_data order by tm asc limit 20"
+        query_stmt = "select datetime(tm, 'localtime'), avg(pressure) from sensor_data group by (strftime('%%s', tm)/(%d))" % interval_seconds
         c.execute(query_stmt)
         pressure_data = c.fetchall()
         # convert the list of tuples to two lists
@@ -77,7 +77,8 @@ class PlotCanvas(FigureCanvas):
  
     def plot(self):
 #         data = [random.random() for i in range(25)]
-        tm, pressure = self._iotHub.query_pressure()
+        # group by 60 second interval
+        tm, pressure = self._iotHub.query_pressure(1200)
         ax = self.figure.add_subplot(111)
 #         ax.plot(data, 'r-')
         ax.plot_date(tm, pressure, 'r-', xdate=True) #(tm, pressure, 'r-')
